@@ -1,0 +1,38 @@
+{
+  "name": "bpmnml",
+  "version": "0.1.0",
+  "description": "A markup language for BPMN based on Langium",
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "watch": "concurrently -n tsc,esbuild -c blue,yellow \"tsc --watch\" \"node esbuild.mjs --watch\"",
+    "langium:generate": "langium generate",
+    "langium:watch": "langium generate --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src --ext ts",
+    "clean": "rimraf out generated",
+    "prepare": "npm run clean && npm run langium:generate && npm run build"
+  },
+  "dependencies": {
+    "langium": "^3.0.0",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.11"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "concurrently": "^8.2.2",
+    "esbuild": "^0.20.0",
+    "eslint": "^8.56.0",
+    "langium-cli": "^3.0.0",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0"
+  }
+}

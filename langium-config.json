@@ -1,0 +1,14 @@
+{
+  "projectName": "BPMNml",
+  "languages": [
+    {
+      "id": "bpmnml",
+      "grammar": "src/language/bpmn/bpmn.langium",
+      "fileExtensions": [".bpmn", ".bpmnml"],
+      "textMate": {
+        "out": "syntaxes/bpmnml.tmLanguage.json"
+      }
+    }
+  ],
+  "out": "src/generated"
+}

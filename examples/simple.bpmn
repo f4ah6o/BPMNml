@@ -1,0 +1,18 @@
+---
+title: Simple BPMN Example
+---
+
+bpmn-beta
+    event StartEvent <<start>>
+    task TaskA
+    gateway DecisionPoint <<exclusive>>
+    task TaskB
+    task TaskC
+    event EndEvent <<end>>
+
+    StartEvent --> TaskA
+    TaskA --> DecisionPoint
+    DecisionPoint --> TaskB : "yes"
+    DecisionPoint --> TaskC : "no"
+    TaskB --> EndEvent
+    TaskC --> EndEvent
