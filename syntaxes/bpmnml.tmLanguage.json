@@ -1,0 +1,77 @@
+{
+  "name": "bpmnml",
+  "scopeName": "source.bpmnml",
+  "fileTypes": [
+    ".bpmn",
+    ".bpmnml"
+  ],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "name": "keyword.control.bpmnml",
+      "match": "\\b(bpmn-beta|business-rule|cancel|compensation|complex|conditional|end|error|escalation|event|event-based|exclusive|gateway|inclusive|intermediate|lane|link|manual|message|multiple|parallel|pool|receive|script|send|service|signal|start|task|terminate|timer|user)\\b"
+    },
+    {
+      "name": "string.quoted.double.bpmnml",
+      "begin": "\"",
+      "end": "'",
+      "patterns": [
+        {
+          "include": "#string-character-escape"
+        }
+      ]
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.block.bpmnml",
+          "begin": "---",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.bpmnml"
+            }
+          },
+          "end": "\n\\S",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.bpmnml"
+            }
+          }
+        },
+        {
+          "name": "comment.block.bpmnml",
+          "begin": "",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.bpmnml"
+            }
+          },
+          "end": "\n\\S",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.bpmnml"
+            }
+          }
+        },
+        {
+          "begin": "",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.whitespace.comment.leading.bpmnml"
+            }
+          },
+          "end": "(?=$)",
+          "name": "comment.line.bpmnml"
+        }
+      ]
+    },
+    "string-character-escape": {
+      "name": "constant.character.escape.bpmnml",
+      "match": "\\\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|u\\{[0-9A-Fa-f]+\\}|[0-2][0-7]{0,2}|3[0-6][0-7]?|37[0-7]?|[4-7][0-7]?|.|$)"
+    }
+  }
+}
