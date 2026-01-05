@@ -1,5 +1,5 @@
-import type { ValidationAcceptor, ValidationChecks } from 'langium';
-import type { BPMNmlAstType, Connection, Node, Pool, Lane, BPMN } from '../../generated/ast.ts';
+import type { AstNode, ValidationAcceptor, ValidationChecks, ValidationRegistry } from 'langium';
+import type { BPMNmlAstType, Connection, Node, Pool, Lane, BPMN } from '../../generated/ast.js';
 import type { BPMNmlServices } from './bpmn-module.js';
 
 /**
@@ -12,7 +12,7 @@ export class BPMNmlValidator {
     /**
      * Register custom validation checks.
      */
-    registerValidationChecks(checksRegistry: ValidationChecks<BPMNmlAstType>) {
+    registerValidationChecks(checksRegistry: ValidationRegistry) {
         const checks: ValidationChecks<BPMNmlAstType> = {
             Connection: this.checkConnection,
             BPMN: this.checkDuplicateNodeNames,
@@ -31,6 +31,26 @@ export class BPMNmlValidator {
         }
         if (!connection.target || !connection.target.ref) {
             accept('error', 'Connection target node is not defined.', { node: connection, property: 'target' });
+        }
+
+        if (connection.source?.ref && connection.target?.ref) {
+            const sourcePool = this.findPoolForNode(connection.source.ref);
+            const targetPool = this.findPoolForNode(connection.target.ref);
+            const isMessageFlow = connection.connector === '~~>';
+
+            if (isMessageFlow) {
+                if (!sourcePool || !targetPool) {
+                    accept('error', 'Message flows must connect nodes in different pools.', { node: connection });
+                } else if (sourcePool === targetPool) {
+                    accept('error', 'Message flows cannot connect nodes within the same pool.', { node: connection });
+                }
+            } else {
+                if (sourcePool && targetPool && sourcePool !== targetPool) {
+                    accept('error', 'Connections cannot cross pool boundaries.', { node: connection });
+                } else if ((sourcePool && !targetPool) || (!sourcePool && targetPool)) {
+                    accept('error', 'Connections cannot mix pooled and unpooled nodes.', { node: connection });
+                }
+            }
         }
 
         // Check for self-loops
@@ -101,5 +121,19 @@ export class BPMNmlValidator {
         if (lane.elements.length === 0) {
             accept('warning', 'Lane is empty. Consider adding elements.', { node: lane, property: 'name' });
         }
+    }
+
+    /**
+     * Find the containing pool for a node, if any.
+     */
+    protected findPoolForNode(node: Node): Pool | undefined {
+        let current: AstNode | undefined = node.$container;
+        while (current) {
+            if (current.$type === 'Pool') {
+                return current as Pool;
+            }
+            current = current.$container;
+        }
+        return undefined;
     }
 }

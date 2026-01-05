@@ -7,7 +7,7 @@ import {
     createDefaultModule,
     createDefaultSharedModule
 } from 'langium/lsp';
-import { BPMNmlGeneratedModule, BPMNmlGeneratedSharedModule } from '../../generated/module.ts';
+import { BPMNmlGeneratedModule, BPMNmlGeneratedSharedModule } from '../../generated/module.js';
 
 /**
  * Declaration of custom services - add your own service classes here.

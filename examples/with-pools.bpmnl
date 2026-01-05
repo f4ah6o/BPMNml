@@ -1,0 +1,43 @@
+---
+title: BPMN with Pools and Lanes
+---
+
+bpmn-beta
+    pool CustomerPool {
+        lane CustomerLane {
+            event Start1 <<start>>
+            task SubmitOrder
+            event End1 <<end>>
+
+            Start1 --> SubmitOrder
+            SubmitOrder --> End1
+        }
+    }
+
+    pool CompanyPool {
+        event CompanyStart <<start>>
+        gateway Split <<parallel>>
+
+        lane SalesLane {
+            task ProcessOrder
+            task CheckInventory
+            event End2 <<end>>
+
+            Split --> ProcessOrder
+            ProcessOrder --> CheckInventory
+            CheckInventory --> End2
+        }
+
+        lane WarehouseLane {
+            task PackItems
+            task ShipOrder
+            event End3 <<end>>
+
+            Split --> PackItems
+            PackItems --> ShipOrder
+            ShipOrder --> End3
+        }
+        CompanyStart --> Split
+    }
+
+    SubmitOrder ~~> ProcessOrder : "order request"

@@ -13,7 +13,14 @@ It aims to be compatible with [Mermaid](https://mermaid.js.org/).
 
 * [ ] Support for Major BPMN spec
 * [ ] Merge into Mermaid
-* [ ] BPMN XML code generator
+* [x] BPMN XML code generator (basic, no DI)
+
+## Current capabilities
+
+- Events, tasks, gateways, pools, and lanes
+- Sequence flows, associations, and message flows
+- Pool-aware validation (duplicate names, invalid cross-pool flows)
+- XML generator with processes per pool, collaboration/message flows, and basic BPMN DI
 
 ## Example
 
@@ -41,114 +48,29 @@ bpmn-beta
         lane fstLane {
             event Start1 <<start>>
             event End2 <<end>>
-            %% Needs adjustment as connections are limited to the scope
             Start1 --> End2
         }
     }
 ```
 
-```langium
-grammar BPMNml
+Connections can target nodes across lanes within the same pool.
 
-// from https://github.com/mermaid-js/mermaid/blob/develop/packages/parser/src/language/common/common.langium
-// import "../common/common";
-interface Common {
-  accDescr?: string;
-  accTitle?: string;
-  title?: string;
-}
+## Connections
 
-fragment TitleAndAccessibilities:
-  ((accDescr=ACC_DESCR | accTitle=ACC_TITLE | title=TITLE) EOL)+
-;
+- `-->`, `..->`, `==>`: sequence flow (same pool or global)
+- `--`, `..`: association
+- `~~>`: message flow (between pools)
 
-fragment EOL returns string:
-  NEWLINE+ | EOF
-;
+## Element types
 
-terminal NEWLINE: /\r?\n/;
-terminal ACC_DESCR: /[\t ]*accDescr(?:[\t ]*:([^\n\r]*?(?=%%)|[^\n\r]*)|\s*{([^}]*)})/;
-terminal ACC_TITLE: /[\t ]*accTitle[\t ]*:(?:[^\n\r]*?(?=%%)|[^\n\r]*)/;
-terminal TITLE: /[\t ]*title(?:[\t ][^\n\r]*?(?=%%)|[\t ][^\n\r]*|)/;
+- Event types: `start`, `end`, `intermediate`, `message`, `timer`, `error`, `escalation`, `cancel`, `compensation`, `conditional`, `link`, `signal`, `terminate`, `multiple`, `parallel`
+- Task types: `service`, `user`, `manual`, `send`, `receive`, `script`, `business-rule`
+- Gateway types: `exclusive`, `parallel`, `inclusive`, `event-based`, `complex`
 
-hidden terminal WHITESPACE: /[\t ]+/;
-hidden terminal YAML: /---[\t ]*\r?\n(?:[\S\s]*?\r?\n)?---(?:\r?\n|(?!\S))/;
-hidden terminal DIRECTIVE: /[\t ]*%%{[\S\s]*?}%%(?:\r?\n|(?!\S))/;
-hidden terminal SINGLE_LINE_COMMENT: /[\t ]*%%[^\n\r]*/;
-// common
+## XML generation
 
-// Entry rule
-entry BPMN:
-    NEWLINE*
-    "bpmn-beta"
-    (
-    NEWLINE* TitleAndAccessibilities BPMNModel*
-    | NEWLINE* BPMNModel
-    | NEWLINE*
-    )
-;
-
-// Define terminal rules
-terminal ID: /[a-zA-Z_][a-zA-Z0-9_]*/;
-terminal STRING: /"([^"\r\n])*"/ | /'([^'\r\n])*'/;
-terminal INT returns number: /[0-9]+/;
-
-hidden terminal WS: /\s+/;
-
-BPMNModel:
-    elements+=BPMNElement*;
-
-// Definition of BPMN elements
-BPMNElement:
-    Node | Container | Connection;
-
-// Abstract definition of a node
-Node:
-    Event | Task | Gateway;
-
-// Definition of an event
-Event:
-    'event' name=ID ('<<' eventType=EventType '>>')?;
-
-// Definition of event types
-EventType:
-    start = 'start' |
-    end = 'end' |
-    intermediate = 'intermediate';
-
-// Definition of a task
-Task:
-    'task' name=ID;
-
-// Definition of a gateway
-Gateway:
-    'gateway' name=ID ('<<' gatewayType=GatewayType '>>')?;
-
-// Definition of gateway types
-GatewayType:
-    exclusive = 'exclusive' |
-    parallel = 'parallel' |
-    inclusive = 'inclusive';
-
-// Abstract definition of a container
-Container:
-    Pool | Lane;
-
-// Definition of a pool
-Pool:
-    'pool' name=ID '{'
-        elements+=BPMNElement*
-    '}';
-
-// Definition of a lane
-Lane:
-    'lane' name=ID '{'
-        elements+=BPMNElement*
-    '}';
-
-// Definition of a connection
-Connection:
-    source=[Node:ID] ('-->' | '..>' | '--') target=[Node:ID] (':' label=STRING)?;
+```bash
+pnpm bpmnxml -- examples/with-pools.bpmn out.bpmn.xml
 ```
 
 ## References

@@ -1,39 +1,144 @@
----
-title: BPMN with Pools and Lanes
----
-
-bpmn-beta
-    pool CustomerPool {
-        lane CustomerLane {
-            event Start1 <<start>>
-            task SubmitOrder
-            event End1 <<end>>
-
-            Start1 --> SubmitOrder
-            SubmitOrder --> End1
-        }
-    }
-
-    pool CompanyPool {
-        lane SalesLane {
-            event Start2 <<start>>
-            task ProcessOrder
-            task CheckInventory
-            event End2 <<end>>
-
-            Start2 --> ProcessOrder
-            ProcessOrder --> CheckInventory
-            CheckInventory --> End2
-        }
-
-        lane WarehouseLane {
-            event Start3 <<start>>
-            task PackItems
-            task ShipOrder
-            event End3 <<end>>
-
-            Start3 --> PackItems
-            PackItems --> ShipOrder
-            ShipOrder --> End3
-        }
-    }
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             id="Definitions_1"
+             targetNamespace="http://bpmn.io/schema/bpmn">
+  <process id="Process_CustomerPool_1" isExecutable="false">
+    <startEvent id="Start1_1" name="Start1">
+      <outgoing>Flow_1</outgoing>
+    </startEvent>
+    <task id="SubmitOrder_1" name="SubmitOrder">
+      <incoming>Flow_1</incoming>
+      <outgoing>Flow_2</outgoing>
+    </task>
+    <endEvent id="End1_1" name="End1">
+      <incoming>Flow_2</incoming>
+    </endEvent>
+    <sequenceFlow id="Flow_1" sourceRef="Start1_1" targetRef="SubmitOrder_1" />
+    <sequenceFlow id="Flow_2" sourceRef="SubmitOrder_1" targetRef="End1_1" />
+  </process>
+  <process id="Process_CompanyPool_1" isExecutable="false">
+    <startEvent id="CompanyStart_1" name="CompanyStart">
+      <outgoing>Flow_9</outgoing>
+    </startEvent>
+    <parallelGateway id="Split_1" name="Split">
+      <incoming>Flow_9</incoming>
+      <outgoing>Flow_3</outgoing>
+      <outgoing>Flow_6</outgoing>
+    </parallelGateway>
+    <task id="ProcessOrder_1" name="ProcessOrder">
+      <incoming>Flow_3</incoming>
+      <outgoing>Flow_4</outgoing>
+    </task>
+    <task id="CheckInventory_1" name="CheckInventory">
+      <incoming>Flow_4</incoming>
+      <outgoing>Flow_5</outgoing>
+    </task>
+    <endEvent id="End2_1" name="End2">
+      <incoming>Flow_5</incoming>
+    </endEvent>
+    <task id="PackItems_1" name="PackItems">
+      <incoming>Flow_6</incoming>
+      <outgoing>Flow_7</outgoing>
+    </task>
+    <task id="ShipOrder_1" name="ShipOrder">
+      <incoming>Flow_7</incoming>
+      <outgoing>Flow_8</outgoing>
+    </task>
+    <endEvent id="End3_1" name="End3">
+      <incoming>Flow_8</incoming>
+    </endEvent>
+    <sequenceFlow id="Flow_3" sourceRef="Split_1" targetRef="ProcessOrder_1" />
+    <sequenceFlow id="Flow_4" sourceRef="ProcessOrder_1" targetRef="CheckInventory_1" />
+    <sequenceFlow id="Flow_5" sourceRef="CheckInventory_1" targetRef="End2_1" />
+    <sequenceFlow id="Flow_6" sourceRef="Split_1" targetRef="PackItems_1" />
+    <sequenceFlow id="Flow_7" sourceRef="PackItems_1" targetRef="ShipOrder_1" />
+    <sequenceFlow id="Flow_8" sourceRef="ShipOrder_1" targetRef="End3_1" />
+    <sequenceFlow id="Flow_9" sourceRef="CompanyStart_1" targetRef="Split_1" />
+  </process>
+  <collaboration id="Collaboration_1">
+    <participant id="Participant_CustomerPool_1" name="CustomerPool" processRef="Process_CustomerPool_1" />
+    <participant id="Participant_CompanyPool_1" name="CompanyPool" processRef="Process_CompanyPool_1" />
+  </collaboration>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+      <bpmndi:BPMNShape id="Start1_1_di" bpmnElement="Start1_1">
+        <dc:Bounds x="100" y="80" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubmitOrder_1_di" bpmnElement="SubmitOrder_1">
+        <dc:Bounds x="280" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End1_1_di" bpmnElement="End1_1">
+        <dc:Bounds x="460" y="80" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CompanyStart_1_di" bpmnElement="CompanyStart_1">
+        <dc:Bounds x="100" y="300" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Split_1_di" bpmnElement="Split_1">
+        <dc:Bounds x="280" y="300" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ProcessOrder_1_di" bpmnElement="ProcessOrder_1">
+        <dc:Bounds x="460" y="300" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CheckInventory_1_di" bpmnElement="CheckInventory_1">
+        <dc:Bounds x="640" y="300" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End2_1_di" bpmnElement="End2_1">
+        <dc:Bounds x="820" y="300" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="PackItems_1_di" bpmnElement="PackItems_1">
+        <dc:Bounds x="1000" y="300" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ShipOrder_1_di" bpmnElement="ShipOrder_1">
+        <dc:Bounds x="1180" y="300" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End3_1_di" bpmnElement="End3_1">
+        <dc:Bounds x="1360" y="300" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_CustomerPool_1_di" bpmnElement="Participant_CustomerPool_1" isHorizontal="true">
+        <dc:Bounds x="60" y="40" width="476" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_CompanyPool_1_di" bpmnElement="Participant_CompanyPool_1" isHorizontal="true">
+        <dc:Bounds x="60" y="260" width="1376" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="118" y="98" />
+        <di:waypoint x="330" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="330" y="120" />
+        <di:waypoint x="478" y="98" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="305" y="325" />
+        <di:waypoint x="510" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="510" y="340" />
+        <di:waypoint x="690" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="690" y="340" />
+        <di:waypoint x="838" y="318" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+        <di:waypoint x="305" y="325" />
+        <di:waypoint x="1050" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7">
+        <di:waypoint x="1050" y="340" />
+        <di:waypoint x="1230" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8">
+        <di:waypoint x="1230" y="340" />
+        <di:waypoint x="1378" y="318" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_9_di" bpmnElement="Flow_9">
+        <di:waypoint x="118" y="318" />
+        <di:waypoint x="305" y="325" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

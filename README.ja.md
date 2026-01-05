@@ -13,7 +13,14 @@ BPMNmlは、BPMNのマークアップ言語です。文法は当初[Class Digram
 
 * [ ] 主要なBPMN仕様に対応
 * [ ] Mermaidにマージ
-* [ ] BPMN XMLのコード生成
+* [x] BPMN XMLのコード生成（基本、DIは未対応）
+
+## 現在の機能
+
+- イベント、タスク、ゲートウェイ、プール、レーン
+- シーケンスフロー、アソシエーション、メッセージフロー
+- プール境界のバリデーション（重複名、プール跨ぎの接続など）
+- プール単位のプロセスとコラボレーションを含むXML生成（基本的なBPMN DIあり）
 
 ## 例
 
@@ -41,114 +48,29 @@ bpmn-beta
         lane fstLane {
             event Start1 <<start>>
             event End2 <<end>>
-            %% コネクションの設定がスコープ内に限定されるため要修正
             Start1 --> End2
         }
     }
 ```
 
-```langium
-grammar BPMNml
+同一プール内であれば、レーンをまたいだ接続が可能です。
 
-// from https://github.com/mermaid-js/mermaid/blob/develop/packages/parser/src/language/common/common.langium
-// import "../common/common";
-interface Common {
-  accDescr?: string;
-  accTitle?: string;
-  title?: string;
-}
+## コネクション
 
-fragment TitleAndAccessibilities:
-  ((accDescr=ACC_DESCR | accTitle=ACC_TITLE | title=TITLE) EOL)+
-;
+- `-->`, `..->`, `==>`: シーケンスフロー（同一プール内またはグローバル）
+- `--`, `..`: アソシエーション
+- `~~>`: メッセージフロー（プール間）
 
-fragment EOL returns string:
-  NEWLINE+ | EOF
-;
+## 要素の種類
 
-terminal NEWLINE: /\r?\n/;
-terminal ACC_DESCR: /[\t ]*accDescr(?:[\t ]*:([^\n\r]*?(?=%%)|[^\n\r]*)|\s*{([^}]*)})/;
-terminal ACC_TITLE: /[\t ]*accTitle[\t ]*:(?:[^\n\r]*?(?=%%)|[^\n\r]*)/;
-terminal TITLE: /[\t ]*title(?:[\t ][^\n\r]*?(?=%%)|[\t ][^\n\r]*|)/;
+- イベント: `start`, `end`, `intermediate`, `message`, `timer`, `error`, `escalation`, `cancel`, `compensation`, `conditional`, `link`, `signal`, `terminate`, `multiple`, `parallel`
+- タスク: `service`, `user`, `manual`, `send`, `receive`, `script`, `business-rule`
+- ゲートウェイ: `exclusive`, `parallel`, `inclusive`, `event-based`, `complex`
 
-hidden terminal WHITESPACE: /[\t ]+/;
-hidden terminal YAML: /---[\t ]*\r?\n(?:[\S\s]*?\r?\n)?---(?:\r?\n|(?!\S))/;
-hidden terminal DIRECTIVE: /[\t ]*%%{[\S\s]*?}%%(?:\r?\n|(?!\S))/;
-hidden terminal SINGLE_LINE_COMMENT: /[\t ]*%%[^\n\r]*/;
-// common
+## XML生成
 
-// エントリールール
-entry BPMN:
-    NEWLINE*
-    "bpmn-beta"
-    (
-    NEWLINE* TitleAndAccessibilities BPMNModel*
-    | NEWLINE* BPMNModel
-    | NEWLINE*
-    )
-;
-
-// ターミナルルールの定義
-terminal ID: /[a-zA-Z_][a-zA-Z0-9_]*/;
-terminal STRING: /"([^"\r\n])*"/ | /'([^'\r\n])*'/;
-terminal INT returns number: /[0-9]+/;
-
-hidden terminal WS: /\s+/;
-
-BPMNModel:
-    elements+=BPMNElement*;
-
-// BPMN要素の定義
-BPMNElement:
-    Node | Container | Connection;
-
-// ノードの抽象定義
-Node:
-    Event | Task | Gateway;
-
-// イベントの定義
-Event:
-    'event' name=ID ('<<' eventType=EventType '>>')?;
-
-// イベントの種類の定義
-EventType:
-    start = 'start' |
-    end = 'end' |
-    intermediate = 'intermediate';
-
-// タスクの定義
-Task:
-    'task' name=ID;
-
-// ゲートウェイの定義
-Gateway:
-    'gateway' name=ID ('<<' gatewayType=GatewayType '>>')?;
-
-// ゲートウェイの種類の定義
-GatewayType:
-    exclusive = 'exclusive' |
-    parallel = 'parallel' |
-    inclusive = 'inclusive';
-
-// コンテナの抽象定義
-Container:
-    Pool | Lane;
-
-// プールの定義
-Pool:
-    'pool' name=ID '{'
-        elements+=BPMNElement*
-    '}';
-
-// レーンの定義
-Lane:
-    'lane' name=ID '{'
-        elements+=BPMNElement*
-    '}';
-
-// 接続の定義
-Connection:
-    source=[Node:ID] ('-->' | '..>' | '--') target=[Node:ID] (':' label=STRING)?;
+```bash
+pnpm bpmnxml -- examples/with-pools.bpmn out.bpmn.xml
 ```
 
 ## 参考

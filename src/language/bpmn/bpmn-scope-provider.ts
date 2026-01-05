@@ -1,6 +1,6 @@
 import { AstNode, AstNodeDescription, DefaultScopeProvider, ReferenceInfo, Scope, stream } from 'langium';
 import { BPMNmlServices } from './bpmn-module.js';
-import { BPMN, Connection, Pool, Lane, Node } from '../../generated/ast.ts';
+import { BPMN, Connection, Pool, Lane, Node } from '../../generated/ast.js';
 
 /**
  * Custom scope provider for BPMNml.
@@ -31,9 +31,22 @@ export class BPMNmlScopeProvider extends DefaultScopeProvider {
         const container = this.findContainer(connection);
         const nodes: AstNodeDescription[] = [];
 
+        if (connection.connector === '~~>') {
+            const bpmn = this.findBPMN(connection);
+            if (bpmn) {
+                this.collectNodesFromPools(bpmn, nodes);
+            }
+            return this.createScope(nodes);
+        }
+
         if (container) {
-            // If inside a container, only allow references to nodes in that container
-            this.collectNodesFromContainer(container, nodes);
+            if (container.$type === 'Lane') {
+                const pool = this.findPool(container);
+                this.collectNodesFromContainer(pool ?? container, nodes);
+            } else {
+                // Pool-level connections can reference any node in the pool (including lanes)
+                this.collectNodesFromContainer(container, nodes);
+            }
         } else {
             // If in global scope, collect all global nodes
             const bpmn = this.findBPMN(connection);
@@ -54,6 +67,20 @@ export class BPMNmlScopeProvider extends DefaultScopeProvider {
         while (current) {
             if (current.$type === 'Pool' || current.$type === 'Lane') {
                 return current as Pool | Lane;
+            }
+            current = current.$container;
+        }
+        return undefined;
+    }
+
+    /**
+     * Find the containing Pool for a node or lane.
+     */
+    protected findPool(node: AstNode): Pool | undefined {
+        let current = node.$container;
+        while (current) {
+            if (current.$type === 'Pool') {
+                return current as Pool;
             }
             current = current.$container;
         }
@@ -97,6 +124,17 @@ export class BPMNmlScopeProvider extends DefaultScopeProvider {
                 nodes.push(this.descriptions.createDescription(element, element.name));
             }
             // Do not descend into pools/lanes for global scope
+        }
+    }
+
+    /**
+     * Collect all nodes from all pools (including nested lanes).
+     */
+    protected collectNodesFromPools(bpmn: BPMN, nodes: AstNodeDescription[]): void {
+        for (const element of bpmn.elements) {
+            if (element.$type === 'Pool') {
+                this.collectNodesFromContainer(element as Pool, nodes);
+            }
         }
     }
 
